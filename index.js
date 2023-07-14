@@ -21,14 +21,14 @@ const run = async () => {
     const db = client.db('theskylibrary');
     const bookCollection = db.collection('books');
 
-    app.get('/products', async (req, res) => {
+    app.get('/books', async (req, res) => {
       const cursor = bookCollection.find({});
       const product = await cursor.toArray();
 
       res.send({ status: true, data: product });
     });
 
-    app.post('/product', async (req, res) => {
+    app.post('/book', async (req, res) => {
       const product = req.body;
 
       const result = await bookCollection.insertOne(product);
@@ -36,7 +36,7 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get('/product/:id', async (req, res) => {
+    app.get('/book/:id', async (req, res) => {
       const id = Number(req.params.id);
       // const id = req.params.id;
       const result = await bookCollection.findOne({ _id:(id) });
@@ -44,7 +44,7 @@ const run = async () => {
       res.send(result);
     });
 
-    app.delete('/product/:id', async (req, res) => {
+    app.delete('/book/:id', async (req, res) => {
       const id = req.params.id;
 
       const result = await bookCollection.deleteOne({ _id: ObjectId(id) });
@@ -117,7 +117,7 @@ const run = async () => {
 run().catch((err) => console.log(err));
 
 app.get('/', (req, res) => {
-  res.send('Hello from The Sjy Library!');
+  res.send('Hello from The Sky Library!');
 });
 
 app.listen(port, () => {
