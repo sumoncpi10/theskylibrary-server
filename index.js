@@ -43,6 +43,21 @@ const run = async () => {
       console.log(result);
       res.send(result);
     });
+    app.get('/searchBook/:text', async (req, res) => {
+      try {
+        const Genre = req.params.text;
+        // console.log(Genre);
+        const cursor = await bookCollection.find({ Genre });
+        const product = await cursor.toArray();
+
+        res.send({ status: true, data: product });
+       
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
+
 
     app.delete('/book/:id', async (req, res) => {
       const id = req.params.id;
