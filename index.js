@@ -43,20 +43,33 @@ const run = async () => {
       console.log(result);
       res.send(result);
     });
-    app.get('/searchBook/:text', async (req, res) => {
-      try {
-        const Genre = req.params.text;
-        // console.log(Genre);
-        const cursor = await bookCollection.find({ Genre });
-        const product = await cursor.toArray();
+app.get('/searchBook/:text', async (req, res) => {
+  try {
+    const searchText = req.params.text;
+    const regex = new RegExp(searchText, 'i');
 
-        res.send({ status: true, data: product });
-       
-      } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      }
+    let cursor = await bookCollection.find({
+      $or: [
+        { Genre: { $regex: regex } },
+        { Author: { $regex: regex } },
+        { Title: { $regex: regex } },
+      ]
     });
+
+    let product = await cursor.toArray();
+    if(product.length==0){
+      cursor = await bookCollection.find({});
+      product = await cursor.toArray();
+      return product;
+    }else{
+      res.send({ status: true, data: product });
+    }
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
     app.delete('/book/:id', async (req, res) => {
