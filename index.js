@@ -43,43 +43,65 @@ const run = async () => {
       console.log(result);
       res.send(result);
     });
-app.get('/searchBook/:text', async (req, res) => {
-  try {
-    const searchText = req.params.text;
-    const regex = new RegExp(searchText, 'i');
+    app.get('/searchBook/:text', async (req, res) => {
+      try {
+        const searchText = req.params.text;
+        const regex = new RegExp(searchText, 'i');
 
-    let cursor = await bookCollection.find({
-      $or: [
-        { Genre: { $regex: regex } },
-        { Author: { $regex: regex } },
-        { Title: { $regex: regex } },
-      ]
+        let cursor = await bookCollection.find({
+          $or: [
+            { Genre: { $regex: regex } },
+            { Author: { $regex: regex } },
+            { Title: { $regex: regex } },
+          ]
+        });
+
+        let product = await cursor.toArray();
+        if(product.length==0){
+          cursor = await bookCollection.find({});
+          product = await cursor.toArray();
+          return product;
+        }else{
+          res.send({ status: true, data: product });
+        }
+        
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+      }
     });
 
-    let product = await cursor.toArray();
-    if(product.length==0){
-      cursor = await bookCollection.find({});
-      product = await cursor.toArray();
-      return product;
-    }else{
-      res.send({ status: true, data: product });
-    }
-    
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
-
+  
     app.delete('/book/:id', async (req, res) => {
-      const id = req.params.id;
+      const _id = Number(req.params.id);
+      console.log(_id);
+      try {
 
-      const result = await bookCollection.deleteOne({ _id: ObjectId(id) });
-      console.log(result);
-      res.send(result);
+        // Assuming you have already initialized and connected to the database.
+       const result = await bookCollection.deleteOne({ _id });
+
+        if (result.deletedCount === 1) {
+          return res.status(200).json({ message: 'Book deleted successfully' });
+        } else {
+          return res.status(404).json({ error: 'Book not found' });
+        }
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Something went wrong' });
+      }
     });
 
+    app.patch('/book/:id', (req, res) => {
+      const { id } = (req.params);
+      const data = req.body;
+      console.log(data,id);
+      // Update the product in the database
+      bookCollection
+        .updateOne({ _id:Number(id) }, { $set: data })
+        .then(() => res.json({ message: 'Product updated successfully' }))
+        .catch(error => res.status(500).json({ error: 'Failed to update product' }));
+    });
     app.post('/comment/:id', async (req, res) => {
       const productId = Number(req.params.id);
       const comment = req.body.comment;
