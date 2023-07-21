@@ -30,7 +30,11 @@ const run = async () => {
 
     app.post('/book', async (req, res) => {
       const product = req.body;
+      const id=Number(product?._id);
+      delete product._id;
+      product._id = id;
 
+      console.log(product);
       const result = await bookCollection.insertOne(product);
 
       res.send(result);
@@ -47,7 +51,7 @@ const run = async () => {
       try {
         const searchText = req.params.text;
         const regex = new RegExp(searchText, 'i');
-
+        // console.log(searchText);
         let cursor = await bookCollection.find({
           $or: [
             { Genre: { $regex: regex } },
@@ -61,7 +65,7 @@ const run = async () => {
           cursor = await bookCollection.find({});
           product = await cursor.toArray();
           return product;
-        }else{
+        } else{
           res.send({ status: true, data: product });
         }
         
